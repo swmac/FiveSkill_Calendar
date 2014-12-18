@@ -1,6 +1,7 @@
 package idv.swmac.calendar;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 
 public class FSCalendar {
@@ -20,6 +21,14 @@ public class FSCalendar {
 	private int second;
 	
 	private int twoHour;
+	
+	private int solarTerm;
+	
+	public FSCalendar() {
+		this.calendar = new GregorianCalendar();
+		this.calendar.setTime(new Date());
+		initProperties(this.calendar);
+	}
 	
 	public FSCalendar(GregorianCalendar calendar) {
 		this.calendar = calendar;
@@ -43,6 +52,7 @@ public class FSCalendar {
 		this.minute = this.calendar.get(Calendar.MINUTE);
 		this.second = this.calendar.get(Calendar.SECOND);
 		this.twoHour = calculateTwoHour(this.hourOfDay);
+		this.solarTerm = calculateSolarTerm();
 	}
 	
 	public String getDescription() {
@@ -54,13 +64,23 @@ public class FSCalendar {
 	}
 	
 	private int calculateTwoHour(int hourOfDay) {
-		return ((hourOfDay % 24) + 1) / 2;
+		return ((hourOfDay + 1) % 24) / 2;
+	}
+	
+	private int calculateSolarTerm() {
+		//TODO
+		return 0;
 	}
 
 	public GregorianCalendar getCalendar() {
 		return calendar;
 	}
 
+	public void setTime(int year, int month, int dayOfMonth, int hourOfDay, int minute, int second) {
+		this.calendar = new GregorianCalendar(year, month, dayOfMonth, hourOfDay, minute, second);
+		initProperties(this.calendar);
+	}
+	
 	public void setCalendar(GregorianCalendar calendar) {
 		this.calendar = calendar;
 		initProperties(this.calendar);
@@ -74,7 +94,7 @@ public class FSCalendar {
 		return month;
 	}
 
-	public int getDateOfMonth() {
+	public int getDayOfMonth() {
 		return dayOfMonth;
 	}
 
