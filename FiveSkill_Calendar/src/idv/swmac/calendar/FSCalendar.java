@@ -114,5 +114,7 @@ public class FSCalendar {
 		return twoHour;
 	}
 	
-	
+	public int getSolarTerm() {
+		return solarTerm;
+	}
 }
