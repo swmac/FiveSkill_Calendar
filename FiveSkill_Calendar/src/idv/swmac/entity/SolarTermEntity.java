@@ -3,14 +3,19 @@ package idv.swmac.entity;
 import java.io.Serializable;
 import java.util.List;
 
+import com.google.gson.annotations.SerializedName;
+
 public class SolarTermEntity implements Serializable {
 
 	private static final long serialVersionUID = -3866185335411980104L;
 
+	@SerializedName("StartYear")
 	private int startYear;
 	
+	@SerializedName("EndYear")
 	private int endYear;
 	
+	@SerializedName("TermsEachYear")
 	private List<SolarTermsOfYearEntity> termsEachYear;
 
 	public int getStartYear() {
