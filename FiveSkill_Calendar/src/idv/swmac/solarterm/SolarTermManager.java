@@ -4,18 +4,25 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.text.ParseException;
+import java.util.Date;
 import java.util.GregorianCalendar;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import idv.swmac.entity.SolarTermEntity;
+import idv.swmac.util.CalendarUtil;
 
 public class SolarTermManager {
 
 	private static SolarTermManager instance;
 	
 	private SolarTermEntity solarTermData;
+	
+	private Date timeMin;
+	
+	private Date timeMax;
 	
 	private SolarTermManager() {
 		if (solarTermData == null) {
@@ -39,6 +46,12 @@ public class SolarTermManager {
 		}
 		if (termDataString != null) {
 			this.solarTermData = retrieveDataByGson(termDataString);
+			try {
+				timeMin = CalendarUtil.getDateFromString(solarTermData.getStartTime());
+				timeMax = CalendarUtil.getDateFromString(solarTermData.getEndTime());
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -75,5 +88,13 @@ public class SolarTermManager {
 			return null;
 		}
 		return null;
+	}
+	
+	public Date getTimeMax() {
+		return this.timeMax;
+	}
+	
+	public Date getTimeMin() {
+		return this.timeMin;
 	}
 }

@@ -9,29 +9,29 @@ public class SolarTermEntity implements Serializable {
 
 	private static final long serialVersionUID = -3866185335411980104L;
 
-	@SerializedName("StartYear")
-	private int startYear;
+	@SerializedName("StartTime")
+	private String startTime;
 	
-	@SerializedName("EndYear")
-	private int endYear;
+	@SerializedName("EndTime")
+	private String endTime;
 	
 	@SerializedName("TermsEachYear")
 	private List<SolarTermsOfYearEntity> termsEachYear;
 
-	public int getStartYear() {
-		return startYear;
+	public String getStartTime() {
+		return startTime;
 	}
 
-	public void setStartYear(int startYear) {
-		this.startYear = startYear;
+	public void setStartTime(String startTime) {
+		this.startTime = startTime;
 	}
 
-	public int getEndYear() {
-		return endYear;
+	public String getEndTime() {
+		return endTime;
 	}
 
-	public void setEndYear(int endYear) {
-		this.endYear = endYear;
+	public void setEndTime(String endTime) {
+		this.endTime = endTime;
 	}
 
 	public List<SolarTermsOfYearEntity> getTermsEachYear() {
