@@ -6,11 +6,17 @@ import java.util.Date;
 
 public class CalendarUtil {
 
-	public static Date getDateFromString(String timeString) throws ParseException {
-		Date result;
+	public static Date getDateFromString(String timeString) {
+		Date result = null;
 		SimpleDateFormat sdf = new SimpleDateFormat();
 		sdf.applyPattern("yyyy-MM-dd HH:mm:ss");
-		result = sdf.parse(timeString);
+		try {
+			result = sdf.parse(timeString);
+		} catch (ParseException e) {
+			System.out.println("Exception: getDateFromString");
+			e.printStackTrace();
+		}
 		return result;
 	}
+	
 }

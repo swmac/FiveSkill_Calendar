@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.text.ParseException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -12,6 +13,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import idv.swmac.entity.SolarTermEntity;
+import idv.swmac.entity.SolarTermResult;
+import idv.swmac.entity.SolarTermsOfYearEntity;
 import idv.swmac.util.CalendarUtil;
 
 public class SolarTermManager {
@@ -46,12 +49,8 @@ public class SolarTermManager {
 		}
 		if (termDataString != null) {
 			this.solarTermData = retrieveDataByGson(termDataString);
-			try {
-				timeMin = CalendarUtil.getDateFromString(solarTermData.getStartTime());
-				timeMax = CalendarUtil.getDateFromString(solarTermData.getEndTime());
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
+			timeMin = CalendarUtil.getDateFromString(solarTermData.getStartTime());
+			timeMax = CalendarUtil.getDateFromString(solarTermData.getEndTime());
 		}
 	}
 
@@ -80,21 +79,57 @@ public class SolarTermManager {
 		return this.solarTermData;
 	}
 	
-	public SolarTerm calcSolarTerm(GregorianCalendar calendar) {
-		// TODO
-		if (solarTermData != null) {
-			
-		} else {
-			return null;
-		}
-		return null;
-	}
-	
 	public Date getTimeMax() {
 		return this.timeMax;
 	}
 	
 	public Date getTimeMin() {
 		return this.timeMin;
+	}
+	
+	public SolarTermResult getSolarTermByTime(GregorianCalendar calendar) {
+		if (timeMin == null || timeMax == null) {
+			return SolarTermResult.getInstance(SolarTermResult.Result.TERM_DATA_ERROR, null);
+		} else {
+			if (calendar.before(timeMin) || calendar.after(timeMax)) {
+				return SolarTermResult.getInstance(SolarTermResult.Result.OUT_OF_RANGE, null);
+			} else {
+				SolarTerm term = calcSolarTerm(calendar, this.solarTermData);
+				if (term == null) {
+					return SolarTermResult.getInstance(SolarTermResult.Result.TERM_DATA_ERROR, null);
+				} else {
+					return SolarTermResult.getInstance(SolarTermResult.Result.OK, term);
+				}
+			}
+		}
+	}
+	
+	private SolarTerm calcSolarTerm(GregorianCalendar calendar, SolarTermEntity solarTermData) {
+		if (solarTermData == null || solarTermData.getTermsEachYear() == null) {
+			return null;
+		} else {
+			SolarTermsOfYearEntity termsOfYear = null;
+			if (calendar.before(getSolarTermCalendar(calendar.get(Calendar.YEAR), SolarTerm.LI_SPRINT, this.solarTermData))) {
+				//termOfYear = solarTermData.getTermsEachYear().get
+				// TODO 需重新定義資料結構
+			}
+		}
+		return null;
+	}
+	
+	private GregorianCalendar getSolarTermCalendar(int year, SolarTerm term, SolarTermEntity solarTermData) {
+		SolarTermsOfYearEntity termOfYear = null;
+		for (SolarTermsOfYearEntity termEachYear: solarTermData.getTermsEachYear()) {
+			if (termEachYear.getYear() == year) {
+				termOfYear = termEachYear;
+			}
+		}
+		// if null, must be the last year of the legal range.
+		if (termOfYear == null) {
+			termOfYear = solarTermData.getTermsEachYear().get(solarTermData.getTermsEachYear().size() - 1);
+		}
+		GregorianCalendar result = new GregorianCalendar();
+		result.setTime(CalendarUtil.getDateFromString(termOfYear.getSolarTerms().get(term.value()).getTime()));
+		return result;
 	}
 }
