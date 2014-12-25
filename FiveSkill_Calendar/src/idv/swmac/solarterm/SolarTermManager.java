@@ -24,8 +24,6 @@ public class SolarTermManager {
 
 	private static SolarTermManager instance;
 	
-	private SolarTermEntity solarTermData;
-	//資料直接改成Calendar，不要再用字串去轉換
 	private Map<Integer, List<SolarTermDetail>> solarTermMap;
 	
 	private Date timeMin;
@@ -33,7 +31,7 @@ public class SolarTermManager {
 	private Date timeMax;
 	
 	private SolarTermManager() {
-		if (solarTermData == null) {
+		if (solarTermMap == null) {
 			initSolarTermEntity();
 		}
 	}
@@ -53,7 +51,7 @@ public class SolarTermManager {
 			e.printStackTrace();
 		}
 		if (termDataString != null) {
-			this.solarTermData = retrieveDataByGson(termDataString);
+			SolarTermEntity solarTermData = retrieveDataByGson(termDataString);
 			timeMin = CalendarUtil.getDateFromString(solarTermData.getStartTime());
 			timeMax = CalendarUtil.getDateFromString(solarTermData.getEndTime());
 			
@@ -63,7 +61,12 @@ public class SolarTermManager {
 			}
 			solarTermMap = new HashMap<Integer, List<SolarTermDetail>>();
 			for (SolarTermsOfYearEntity termsOneYear : solarTermData.getTermsEachYear()) {
-				solarTermMap.put(termsOneYear.getYear(), termsOneYear.getSolarTerms());
+				int year = termsOneYear.getYear();
+				List<SolarTermDetail> termDetailList = termsOneYear.getSolarTerms();
+				for (SolarTermDetail termDetail : termDetailList) {
+					termDetail.initCalendar();
+				}
+				solarTermMap.put(year, termDetailList);
 			}
 		}
 	}
@@ -89,10 +92,6 @@ public class SolarTermManager {
 		return result;
 	}
 	
-	public SolarTermEntity getSolarTermEntity() {
-		return this.solarTermData;
-	}
-	
 	public Date getTimeMax() {
 		return this.timeMax;
 	}
@@ -108,7 +107,7 @@ public class SolarTermManager {
 			if (calendar.before(timeMin) || calendar.after(timeMax)) {
 				return SolarTermResult.getInstance(SolarTermResult.Result.OUT_OF_RANGE, null);
 			} else {
-				SolarTerm term = calcSolarTerm(calendar, this.solarTermData);
+				SolarTerm term = calcSolarTerm(calendar, this.solarTermMap);
 				if (term == null) {
 					return SolarTermResult.getInstance(SolarTermResult.Result.TERM_DATA_ERROR, null);
 				} else {
@@ -118,8 +117,9 @@ public class SolarTermManager {
 		}
 	}
 	
-	private SolarTerm calcSolarTerm(GregorianCalendar calendar, SolarTermEntity solarTermData) {
-		if (solarTermData == null || solarTermData.getTermsEachYear() == null) {
+	//TODO 設定為Public進行測試
+	private SolarTerm calcSolarTerm(GregorianCalendar calendar, Map<Integer, List<SolarTermDetail>> solarTermMap) {
+		if (solarTermMap == null || solarTermMap.size() <= 0) {
 			return null;
 		} else {
 			List<SolarTermDetail> termsOfYear = null;
@@ -129,35 +129,24 @@ public class SolarTermManager {
 			} else {
 				termsOfYear = solarTermMap.get(calendar.get(Calendar.YEAR));
 			}
-			for (int i = 0; i < termsOfYear.size(); i++) {
-//				if (calendar.after(when))
+			SolarTerm result = null;
+			for (int i = 1; i < termsOfYear.size(); i++) {
+				if (calendar.before(termsOfYear.get(i).getCalendar())) {
+					result = SolarTerm.values()[i-1];
+				}
+				if (i == termsOfYear.size() - 1) {
+					result = SolarTerm.BIG_COLD;
+				}
 			}
+			return result;
 		}
-		return null;
 	}
-	
-//	private GregorianCalendar getSolarTermCalendar(int year, SolarTerm term, SolarTermEntity solarTermData) {
-//		SolarTermsOfYearEntity termOfYear = null;
-//		for (SolarTermsOfYearEntity termEachYear: solarTermData.getTermsEachYear()) {
-//			if (termEachYear.getYear() == year) {
-//				termOfYear = termEachYear;
-//			}
-//		}
-//		// if null, must be the last year of the legal range.
-//		if (termOfYear == null) {
-//			termOfYear = solarTermData.getTermsEachYear().get(solarTermData.getTermsEachYear().size() - 1);
-//		}
-//		GregorianCalendar result = new GregorianCalendar();
-//		result.setTime(CalendarUtil.getDateFromString(termOfYear.getSolarTerms().get(term.value()).getTime()));
-//		return result;
-//	}
 	
 	private GregorianCalendar getSolarTermCalendar(int year, SolarTerm solarTerm) {
 		GregorianCalendar result = null;
 		List<SolarTermDetail> termsOneYear = solarTermMap.get(year);
 		if (termsOneYear != null) {
-			result = new GregorianCalendar();
-			result.setTime(CalendarUtil.getDateFromString(termsOneYear.get(solarTerm.value()).getTime()));
+			result = termsOneYear.get(solarTerm.value()).getCalendar();
 		}
 		return result;
 	}

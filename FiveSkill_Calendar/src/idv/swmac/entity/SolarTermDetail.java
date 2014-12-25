@@ -1,6 +1,9 @@
 package idv.swmac.entity;
 
+import idv.swmac.util.CalendarUtil;
+
 import java.io.Serializable;
+import java.util.GregorianCalendar;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -14,6 +17,15 @@ public class SolarTermDetail implements Serializable {
 	@SerializedName("Time")
 	private String time;
 
+	private GregorianCalendar calendar;
+	
+	public void initCalendar() {
+		if (calendar == null) {
+			calendar = new GregorianCalendar();
+		}
+		calendar.setTime(CalendarUtil.getDateFromString(time));
+	}
+	
 	public String getName() {
 		return name;
 	}
@@ -28,5 +40,9 @@ public class SolarTermDetail implements Serializable {
 
 	public void setTime(String time) {
 		this.time = time;
+	}
+	
+	public GregorianCalendar getCalendar() {
+		return this.calendar;
 	}
 }

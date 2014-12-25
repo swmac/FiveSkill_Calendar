@@ -10,7 +10,5 @@ public class SystemDemo {
 		File file = new File("./assets/solar_terms.json");
 		System.out.println("Exist the file? Ans." + file.isFile());
 		SolarTermManager solarTerm = SolarTermManager.getInstance();
-		System.out.println(solarTerm.getSolarTermEntity().getStartTime().toString());
-		System.out.println(solarTerm.getSolarTermEntity().getEndTime().toString());
 	}
 }
