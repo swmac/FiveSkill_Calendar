@@ -46,7 +46,7 @@ public class SolarTermManager {
 	private void initSolarTermEntity() {
 		String termDataString = null;
 		try {
-			termDataString = getSolarTermStringFromAssets();
+			termDataString = getSolarTermStringFromAssets("./assets/solar_terms.json");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -71,8 +71,8 @@ public class SolarTermManager {
 		}
 	}
 
-	private String getSolarTermStringFromAssets() throws IOException {
-		BufferedReader in = new BufferedReader(new FileReader("./assets/solar_terms.json"));
+	private String getSolarTermStringFromAssets(String fileName) throws IOException {
+		BufferedReader in = new BufferedReader(new FileReader(fileName));
 		String readString;
 		StringBuilder sb = new StringBuilder();
 		while((readString = in.readLine()) != null) {
@@ -101,6 +101,10 @@ public class SolarTermManager {
 	}
 	
 	public SolarTermResult getSolarTermByTime(GregorianCalendar calendar) {
+		//TODO
+		//1. check the data
+		//2. find the year
+		//3. find the term
 		if (timeMin == null || timeMax == null) {
 			return SolarTermResult.getInstance(SolarTermResult.Result.TERM_DATA_ERROR, null);
 		} else {
