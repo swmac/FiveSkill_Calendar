@@ -8,7 +8,7 @@ import java.util.List;
 
 import com.google.gson.annotations.SerializedName;
 
-public class SolarTermsOfYearEntity_2 implements Serializable {
+public class SolarTermsOfYearEntity_2 implements Serializable, GsonInitEntity {
 
 	private static final long serialVersionUID = -6029539748598915885L;
 
@@ -29,15 +29,23 @@ public class SolarTermsOfYearEntity_2 implements Serializable {
 	private GregorianCalendar endCalendar;
 	
 	public SolarTermsOfYearEntity_2() {
-		init();
+//		init();
 	}
 
-	private void init() {
+//	public void init() {
+//		this.startCalendar = new GregorianCalendar();
+//		this.endCalendar = new GregorianCalendar();
+//		startCalendar.setTime(CalendarUtil.getDateFromString(start));
+//		endCalendar.setTime(CalendarUtil.getDateFromString(end));
+//	}
+	
+	@Override
+	public void GsonEntityInit() {
 		this.startCalendar = new GregorianCalendar();
 		this.endCalendar = new GregorianCalendar();
-		startCalendar.setTime(CalendarUtil.getDateFromString(start));
+		startCalendar.setTime(CalendarUtil.getDateFromString (start));
 		endCalendar.setTime(CalendarUtil.getDateFromString(end));
-	}
+	}	
 	
 	public int getYear() {
 		return year;
@@ -77,5 +85,5 @@ public class SolarTermsOfYearEntity_2 implements Serializable {
 
 	public GregorianCalendar getEndCalendar() {
 		return endCalendar;
-	}	
+	}
 }

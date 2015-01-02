@@ -29,6 +29,8 @@ public enum SolarTerm {
 	
 	private int value;
 	
+	private int year;
+	
 	private String description;
 	
 	private SolarTerm(int value, String description) {
@@ -42,5 +44,13 @@ public enum SolarTerm {
 	
 	public String getDescription() {
 		return this.description;
+	}
+	
+	public void setYear(int year) {
+		this.year = year;
+	}
+	
+	public int getYear() {
+		return this.year;
 	}
 }
