@@ -10,6 +10,7 @@ public class SolarTermManagerException extends RuntimeException {
 	public static final int CODE_NO_MATCHED_TERM = 3;
 	public static final int CODE_AVAILABLETIMERANGE_EMPTY = 4;
 	public static final int CODE_OUTOFAVAILABLETIMERANGE = 5;
+	public static final int CODE_SOLARTERM_FILE_WRONG = 6;
 	
 	private int code;
 	
@@ -56,6 +57,8 @@ public class SolarTermManagerException extends RuntimeException {
 			result = "availableTimeRangeList is null or empty";
 		case CODE_OUTOFAVAILABLETIMERANGE:
 			result = "Out of available time ranges.";
+		case CODE_SOLARTERM_FILE_WRONG:
+			result = "There is something wrong with the solar-term raw data file.";
 		}
 		return result;
 	}

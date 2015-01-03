@@ -1,5 +1,8 @@
 package idv.swmac.calendar;
 
+import idv.swmac.solarterm.SolarTerm;
+import idv.swmac.solarterm.SolarTermManager;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -22,7 +25,7 @@ public class FSCalendar {
 	
 	private int twoHour;
 	
-	private int solarTerm;
+	private SolarTerm solarTerm;
 	
 	public FSCalendar() {
 		this.calendar = new GregorianCalendar();
@@ -67,9 +70,9 @@ public class FSCalendar {
 		return ((hourOfDay + 1) % 24) / 2;
 	}
 	
-	private int calculateSolarTerm() {
-		//TODO
-		return 0;
+	private SolarTerm calculateSolarTerm() {
+		SolarTerm result = SolarTermManager.getInstance().getSolarTermFromCalendar(this.calendar);
+		return result;
 	}
 
 	public GregorianCalendar getCalendar() {
@@ -114,7 +117,7 @@ public class FSCalendar {
 		return twoHour;
 	}
 	
-	public int getSolarTerm() {
+	public SolarTerm getSolarTerm() {
 		return solarTerm;
 	}
 	

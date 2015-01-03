@@ -23,7 +23,7 @@ public class SolarTermManager {
 	public static final String KEY_TIME_RANGE_START = "timeRangeKey_START";
 	public static final String KEY_TIME_RANGE_END = "timeRangeKey_END";
 	
-	private static final String SOLAR_TERM_FILE_NAME = "./assets/solar_terms_2.json";
+	private static final String SOLAR_TERM_FILE_NAME = "./assets/solar_terms.json";
 	
 	private static SolarTermManager instance;
 	
@@ -64,7 +64,7 @@ public class SolarTermManager {
 			throw new SolarTermManagerException(SolarTermManagerException.CODE_OUTOFAVAILABLETIMERANGE, calendar.get(Calendar.YEAR));
 		}
 		List<SolarTermDetail> termList = getTermListByYear(year);
-		int termIndex = 23;
+		int termIndex = termList.size() - 1;
 		for (int i = 0; i < termList.size() - 1; i++) {
 			Calendar termStart = termList.get(i).getCalendar();
 			Calendar termEnd = termList.get(i + 1).getCalendar();
@@ -72,7 +72,9 @@ public class SolarTermManager {
 				termIndex = i;
 			}
 		}
-		return SolarTerm.values()[termIndex];
+		SolarTerm result = SolarTerm.values()[termIndex];
+		result.setYear(year);
+		return result;
 	}
 	
 	public GregorianCalendar getCalendarOfSolarTerm(int year, SolarTerm solarTerm) throws SolarTermManagerException {
@@ -91,6 +93,8 @@ public class SolarTermManager {
 		List<SolarTermDetail> termList = solarTermMap.get(fsYear);
 		if (termList == null || termList.size() <= 0) {
 			throw new SolarTermManagerException(SolarTermManagerException.CODE_NO_MATCHED_YEAR, fsYear);
+		} else if (termList.size() != 24) {
+			throw new SolarTermManagerException(SolarTermManagerException.CODE_SOLARTERM_FILE_WRONG, fsYear);
 		}
 		return termList;
 	}

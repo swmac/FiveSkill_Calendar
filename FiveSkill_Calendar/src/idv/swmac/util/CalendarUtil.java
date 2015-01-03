@@ -19,4 +19,8 @@ public class CalendarUtil {
 		return result;
 	}
 	
+	public static String getStringForDate(Date date) {
+		SimpleDateFormat sdf = new SimpleDateFormat();
+		return sdf.format(date);
+	}
 }

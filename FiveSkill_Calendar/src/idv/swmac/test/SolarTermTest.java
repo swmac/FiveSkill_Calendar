@@ -5,9 +5,11 @@ import static org.junit.Assert.*;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
+import idv.swmac.calendar.FSCalendar;
 import idv.swmac.solarterm.SolarTerm;
 import idv.swmac.solarterm.SolarTermManager;
 import idv.swmac.solarterm.SolarTermManagerException;
+import idv.swmac.util.CalendarUtil;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -32,6 +34,7 @@ public class SolarTermTest {
 	public void setUp() throws Exception {
 		manager = SolarTermManager.getInstance();
 		calendar = new GregorianCalendar();
+		calendar.set(Calendar.MILLISECOND, 0);
 	}
 
 	@After
@@ -42,6 +45,11 @@ public class SolarTermTest {
 	public void test() { // getSolarTermFromCalendar
 		calendar.set(2015, 1, 3, 0, 0, 0);
 		assertEquals(SolarTerm.BIG_COLD, manager.getSolarTermFromCalendar(calendar));
+		FSCalendar fsCalendar = new FSCalendar(2015, 1, 3, 0, 0, 0);
+//		System.out.println(CalendarUtil.getStringForDate(calendar.getTime()) + ", " + calendar.getTimeInMillis());
+//		System.out.println(CalendarUtil.getStringForDate(fsCalendar.getCalendar().getTime()) + ", " + fsCalendar.getCalendar().getTimeInMillis());
+		assertEquals(0, calendar.compareTo(fsCalendar.getCalendar()));
+		assertEquals(2014, fsCalendar.getSolarTerm().getYear());
 	}
 	
 	@Test
