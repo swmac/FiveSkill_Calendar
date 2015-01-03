@@ -4,8 +4,10 @@ import static org.junit.Assert.*;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+
 import idv.swmac.solarterm.SolarTerm;
-import idv.swmac.solarterm.SolarTermManager2;
+import idv.swmac.solarterm.SolarTermManager;
+import idv.swmac.solarterm.SolarTermManagerException;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -15,7 +17,7 @@ import org.junit.Test;
 
 public class SolarTermTest {
 	
-	private SolarTermManager2 manager;
+	private SolarTermManager manager;
 	private GregorianCalendar calendar;
 
 	@BeforeClass
@@ -28,7 +30,7 @@ public class SolarTermTest {
 
 	@Before
 	public void setUp() throws Exception {
-		manager = SolarTermManager2.getInstance();
+		manager = SolarTermManager.getInstance();
 		calendar = new GregorianCalendar();
 	}
 
@@ -38,15 +40,22 @@ public class SolarTermTest {
 
 	@Test
 	public void test() { // getSolarTermFromCalendar
-		calendar.set(2014, 2, 3, 0, 0, 0);
+		calendar.set(2015, 1, 3, 0, 0, 0);
 		assertEquals(SolarTerm.BIG_COLD, manager.getSolarTermFromCalendar(calendar));
 	}
 	
 	@Test
 	public void testTermCalendar() { // getCalendarOfSolarTerm
+		// Normal
 		GregorianCalendar calendar = manager.getCalendarOfSolarTerm(2014, SolarTerm.RAIN_WATER);
 		GregorianCalendar objCalendar = new GregorianCalendar(2014, Calendar.FEBRUARY, 19, 1, 59);
 		assertTrue(objCalendar.equals(calendar));
+		//
+		try {
+			calendar = manager.getCalendarOfSolarTerm(2016, SolarTerm.RAIN_WATER);
+		} catch(SolarTermManagerException e) {
+			System.out.println(e.getMessage());
+		}
 	}
 
 }

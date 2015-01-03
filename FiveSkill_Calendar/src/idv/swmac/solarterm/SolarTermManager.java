@@ -1,11 +1,15 @@
 package idv.swmac.solarterm;
 
+import idv.swmac.entity.SolarTermDetail;
+import idv.swmac.entity.SolarTermsOfYearEntity;
+import idv.swmac.util.CalendarUtil;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
@@ -14,25 +18,24 @@ import java.util.Map;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import idv.swmac.entity.SolarTermDetail;
-import idv.swmac.entity.SolarTermEntity;
-import idv.swmac.entity.SolarTermResult;
-import idv.swmac.entity.SolarTermsOfYearEntity;
-import idv.swmac.util.CalendarUtil;
-
 public class SolarTermManager {
 
+	public static final String KEY_TIME_RANGE_START = "timeRangeKey_START";
+	public static final String KEY_TIME_RANGE_END = "timeRangeKey_END";
+	
+	private static final String SOLAR_TERM_FILE_NAME = "./assets/solar_terms_2.json";
+	
 	private static SolarTermManager instance;
 	
 	private Map<Integer, List<SolarTermDetail>> solarTermMap;
 	
-	private Date timeMin;
-	
-	private Date timeMax;
+	private List<Map<String, Calendar>> availableTimeRangeList;
 	
 	private SolarTermManager() {
-		if (solarTermMap == null) {
-			initSolarTermEntity();
+		try {
+			setSolarTermData(SOLAR_TERM_FILE_NAME);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -43,115 +46,121 @@ public class SolarTermManager {
 		return instance;
 	}
 	
-	private void initSolarTermEntity() {
-		String termDataString = null;
-		try {
-			termDataString = getSolarTermStringFromAssets("./assets/solar_terms.json");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		if (termDataString != null) {
-			SolarTermEntity solarTermData = retrieveDataByGson(termDataString);
-			timeMin = CalendarUtil.getDateFromString(solarTermData.getStartTime());
-			timeMax = CalendarUtil.getDateFromString(solarTermData.getEndTime());
-			
-			if (solarTermMap != null) {
-				solarTermMap.clear();
-				solarTermMap = null;
-			}
-			solarTermMap = new HashMap<Integer, List<SolarTermDetail>>();
-			for (SolarTermsOfYearEntity termsOneYear : solarTermData.getTermsEachYear()) {
-				int year = termsOneYear.getYear();
-				List<SolarTermDetail> termDetailList = termsOneYear.getSolarTerms();
-				for (SolarTermDetail termDetail : termDetailList) {
-					termDetail.initCalendar();
-				}
-				solarTermMap.put(year, termDetailList);
-			}
-		}
+	public Map<Integer, List<SolarTermDetail>> getSolarTermMap() {
+		return this.solarTermMap;
 	}
-
-	private String getSolarTermStringFromAssets(String fileName) throws IOException {
-		BufferedReader in = new BufferedReader(new FileReader(fileName));
-		String readString;
-		StringBuilder sb = new StringBuilder();
-		while((readString = in.readLine()) != null) {
-			sb.append(readString);
+	
+	public SolarTerm getSolarTermFromCalendar(Calendar calendar) throws SolarTermManagerException {
+		if (availableTimeRangeList == null || availableTimeRangeList.size() <= 0) {
+			throw new SolarTermManagerException(SolarTermManagerException.CODE_AVAILABLETIMERANGE_EMPTY);
 		}
-		in.close();
-		String result = sb.toString();
-		result = result.replace("\t", "");
-		result = result.replace("\n", "");
+		int year = -1;
+		for (Map<String, Calendar> rangeMap : availableTimeRangeList) {
+			if (calendar.compareTo(rangeMap.get(KEY_TIME_RANGE_START)) >= 0 && calendar.compareTo(rangeMap.get(KEY_TIME_RANGE_END)) < 0) {
+				year = rangeMap.get(KEY_TIME_RANGE_START).get(Calendar.YEAR);
+			}
+		}
+		if (year < 0) {
+			throw new SolarTermManagerException(SolarTermManagerException.CODE_OUTOFAVAILABLETIMERANGE, calendar.get(Calendar.YEAR));
+		}
+		List<SolarTermDetail> termList = getTermListByYear(year);
+		int termIndex = 23;
+		for (int i = 0; i < termList.size() - 1; i++) {
+			Calendar termStart = termList.get(i).getCalendar();
+			Calendar termEnd = termList.get(i + 1).getCalendar();
+			if (calendar.compareTo(termStart) >= 0 && calendar.compareTo(termEnd) < 0) {
+				termIndex = i;
+			}
+		}
+		return SolarTerm.values()[termIndex];
+	}
+	
+	public GregorianCalendar getCalendarOfSolarTerm(int year, SolarTerm solarTerm) throws SolarTermManagerException {
+		List<SolarTermDetail> termList = getTermListByYear(year);
+		GregorianCalendar result = termList.get(solarTerm.ordinal()).getCalendar();
+		if (result == null) {
+			throw new SolarTermManagerException(SolarTermManagerException.CODE_NO_MATCHED_TERM, year);
+		}
 		return result;
 	}
 	
-	private SolarTermEntity retrieveDataByGson(String termDataString) {
-		Gson gson = new Gson();
-		Type type = new TypeToken<SolarTermEntity>(){}.getType();
-		SolarTermEntity result = gson.fromJson(termDataString, type);
-		return result;
-	}
-	
-	public Date getTimeMax() {
-		return this.timeMax;
-	}
-	
-	public Date getTimeMin() {
-		return this.timeMin;
-	}
-	
-	public SolarTermResult getSolarTermByTime(GregorianCalendar calendar) {
-		//TODO
-		//1. check the data
-		//2. find the year
-		//3. find the term
-		if (timeMin == null || timeMax == null) {
-			return SolarTermResult.getInstance(SolarTermResult.Result.TERM_DATA_ERROR, null);
-		} else {
-			if (calendar.before(timeMin) || calendar.after(timeMax)) {
-				return SolarTermResult.getInstance(SolarTermResult.Result.OUT_OF_RANGE, null);
-			} else {
-				SolarTerm term = calcSolarTerm(calendar, this.solarTermMap);
-				if (term == null) {
-					return SolarTermResult.getInstance(SolarTermResult.Result.TERM_DATA_ERROR, null);
-				} else {
-					return SolarTermResult.getInstance(SolarTermResult.Result.OK, term);
-				}
-			}
-		}
-	}
-	
-	//TODO 設定為Public進行測試
-	private SolarTerm calcSolarTerm(GregorianCalendar calendar, Map<Integer, List<SolarTermDetail>> solarTermMap) {
+	public List<SolarTermDetail> getTermListByYear(int fsYear)  throws SolarTermManagerException {
 		if (solarTermMap == null || solarTermMap.size() <= 0) {
-			return null;
-		} else {
-			List<SolarTermDetail> termsOfYear = null;
-			// 比立春早，則屬於前一年度
-			if (calendar.before(getSolarTermCalendar(calendar.get(Calendar.YEAR), SolarTerm.LI_SPRINT))) {
-				termsOfYear = solarTermMap.get(calendar.get(Calendar.YEAR) - 1);
-			} else {
-				termsOfYear = solarTermMap.get(calendar.get(Calendar.YEAR));
+			throw new SolarTermManagerException(SolarTermManagerException.CODE_SOLARTERMMAP_EMPTY);
+		}
+		List<SolarTermDetail> termList = solarTermMap.get(fsYear);
+		if (termList == null || termList.size() <= 0) {
+			throw new SolarTermManagerException(SolarTermManagerException.CODE_NO_MATCHED_YEAR, fsYear);
+		}
+		return termList;
+	}
+	
+	public void setSolarTermData(String dataFileName) throws IOException {
+		// Reset solarTimeMap
+		if (solarTermMap == null) {
+			solarTermMap = new HashMap<Integer, List<SolarTermDetail>>();
+		} else if (solarTermMap.size() > 0) {
+			solarTermMap.clear();
+		}
+		// Reset availableTimeRanges
+		if (availableTimeRangeList == null) {
+			availableTimeRangeList = new ArrayList<Map<String, Calendar>>();
+		} else if (availableTimeRangeList.size() > 0) {
+			availableTimeRangeList.clear();
+		}
+		// Set Data
+		List<SolarTermsOfYearEntity> yearTermList = getDataFromJsonString(readSolarTermsDataStringFromFile(dataFileName));
+		if (yearTermList != null && yearTermList.size() > 0) {
+			for (SolarTermsOfYearEntity yearTerms : yearTermList) {
+				addSolarTermMap(solarTermMap, yearTerms);
+				addAvailableTimeRanges(availableTimeRangeList, yearTerms);
 			}
-			SolarTerm result = null;
-			for (int i = 1; i < termsOfYear.size(); i++) {
-				if (calendar.before(termsOfYear.get(i).getCalendar())) {
-					result = SolarTerm.values()[i-1];
-				}
-				if (i == termsOfYear.size() - 1) {
-					result = SolarTerm.BIG_COLD;
-				}
-			}
-			return result;
 		}
 	}
 	
-	private GregorianCalendar getSolarTermCalendar(int year, SolarTerm solarTerm) {
-		GregorianCalendar result = null;
-		List<SolarTermDetail> termsOneYear = solarTermMap.get(year);
-		if (termsOneYear != null) {
-			result = termsOneYear.get(solarTerm.value()).getCalendar();
+	private String readSolarTermsDataStringFromFile (String fileName) throws IOException {
+		BufferedReader reader = new BufferedReader(new FileReader(fileName));
+		String bufferString;
+		StringBuilder sb = new StringBuilder();
+		while((bufferString = reader.readLine()) != null) {
+			sb.append(bufferString);
+		}
+		reader.close();
+		String result = sb.toString();
+		result.replace("\t", "");
+		result.replace("\n", "");
+		return result;
+	}
+	
+	private List<SolarTermsOfYearEntity> getDataFromJsonString(String jsonString) {
+		Gson gson = new Gson();
+		Type type = new TypeToken<List<SolarTermsOfYearEntity>>(){}.getType();
+		List<SolarTermsOfYearEntity> result = gson.fromJson(jsonString, type);
+		if (result != null && result.size() > 0) {
+			for (SolarTermsOfYearEntity eachData : result) {
+				eachData.GsonEntityInit();
+			}
 		}
 		return result;
+	}
+	
+	private void addSolarTermMap(Map<Integer, List<SolarTermDetail>> solarTermMap, SolarTermsOfYearEntity yearTermsData) {
+		int year = yearTermsData.getYear();
+		List<SolarTermDetail> termsList = yearTermsData.getSolarTerms();
+		for (SolarTermDetail termDetail : termsList) {
+			termDetail.initCalendar();
+		}
+		solarTermMap.put(year, termsList);
+	}
+	
+	private void addAvailableTimeRanges(List<Map<String, Calendar>> availableTimeRangeList, SolarTermsOfYearEntity yearTermsData) {
+		Calendar start = Calendar.getInstance();
+		Calendar end = Calendar.getInstance();
+		start.setTime(CalendarUtil.getDateFromString(yearTermsData.getStart()));
+		end.setTime(CalendarUtil.getDateFromString(yearTermsData.getEnd()));
+		Map<String, Calendar> rangeMap = new HashMap<String, Calendar>();
+		rangeMap.put(KEY_TIME_RANGE_START, start);
+		rangeMap.put(KEY_TIME_RANGE_END, end);
+		availableTimeRangeList.add(rangeMap);
 	}
 }
