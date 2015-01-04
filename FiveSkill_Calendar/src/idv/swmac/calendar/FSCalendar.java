@@ -27,6 +27,8 @@ public class FSCalendar {
 	
 	private SolarTerm solarTerm;
 	
+	private byte[] pillars;
+	
 	public FSCalendar() {
 		this.calendar = new GregorianCalendar();
 		this.calendar.setTime(new Date());
@@ -43,6 +45,19 @@ public class FSCalendar {
 	}
 	
 	private void initProperties(GregorianCalendar calendar) {
+		initTimes(calendar);
+		initSolarTerm(calendar);
+		initPillars(this.year, this.month, this.dayOfMonth, this.hourOfDay, this.minute, this.second, this.twoHour);
+	}
+
+	private void initPillars(int year, int month, int dayOfMonth, int hourOfDay, int minute, int second, int twoHour) {
+		calcYearPillars(pillars, this.solarTerm.getYear());
+		calcMonthPillars(pillars, this.solarTerm);
+		calcDayPillars(pillars, year, month, dayOfMonth, hourOfDay, minute, second);
+		calcHourPillars(pillars, twoHour);
+	}
+
+	private void initTimes(Calendar calendar) {
 		GregorianCalendar showCalendar = new GregorianCalendar();
 		showCalendar.setTime(calendar.getTime());
 		if (calendar.get(Calendar.HOUR_OF_DAY) >= 23) {
@@ -55,24 +70,35 @@ public class FSCalendar {
 		this.minute = this.calendar.get(Calendar.MINUTE);
 		this.second = this.calendar.get(Calendar.SECOND);
 		this.twoHour = calculateTwoHour(this.hourOfDay);
-		this.solarTerm = calculateSolarTerm();
 	}
-	
-	public String getDescription() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("Date: ").append(this.year).append("-").append(this.month).append("-").append(this.dayOfMonth)
-			.append(", Time: ").append(this.hourOfDay).append(":").append(this.minute).append("'").append(this.second)
-			.append(", 時辰: ").append(this.twoHour);
-		return builder.toString();
-	}
-	
+
 	private int calculateTwoHour(int hourOfDay) {
 		return ((hourOfDay + 1) % 24) / 2;
 	}
 	
-	private SolarTerm calculateSolarTerm() {
-		SolarTerm result = SolarTermManager.getInstance().getSolarTermFromCalendar(this.calendar);
-		return result;
+	private void initSolarTerm(GregorianCalendar calendar) {
+		this.solarTerm = SolarTermManager.getInstance().getSolarTermFromCalendar(calendar);
+	}
+	
+	private void calcYearPillars(byte[] pillars2, int year2) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	private void calcMonthPillars(byte[] pillars2, SolarTerm solarTerm2) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	private void calcDayPillars(byte[] pillars2, int year2, int month2,
+			int dayOfMonth2, int hourOfDay2, int minute2, int second2) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	private void calcHourPillars(byte[] pillars2, int twoHour2) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	public GregorianCalendar getCalendar() {
@@ -121,5 +147,11 @@ public class FSCalendar {
 		return solarTerm;
 	}
 	
-
+	public String getDescription() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Date: ").append(this.year).append("-").append(this.month).append("-").append(this.dayOfMonth)
+			.append(", Time: ").append(this.hourOfDay).append(":").append(this.minute).append("'").append(this.second)
+			.append(", 時辰: ").append(this.twoHour);
+		return builder.toString();
+	}
 }

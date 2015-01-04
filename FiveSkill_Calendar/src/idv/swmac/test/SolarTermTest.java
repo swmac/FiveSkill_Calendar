@@ -9,8 +9,6 @@ import idv.swmac.calendar.FSCalendar;
 import idv.swmac.solarterm.SolarTerm;
 import idv.swmac.solarterm.SolarTermManager;
 import idv.swmac.solarterm.SolarTermManagerException;
-import idv.swmac.util.CalendarUtil;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
