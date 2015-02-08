@@ -38,7 +38,7 @@ public class PillarUtil {
 	
 	public static byte getMonthStem(byte yearStem, byte monthBranch) {
 		int startStem = ((yearStem % 5) * 2 + 2) % 10;
-		int delta = (monthBranch + 8) % 10;
+		int delta = (monthBranch + 10) % 12;
 		return (byte) ((startStem + delta) % 10);
 	}
 	
@@ -48,11 +48,12 @@ public class PillarUtil {
 		Calendar ca1 = new GregorianCalendar(fsYear, fsMonth, fsDay);
 		int delta = CalendarUtil.getDurationDaysBetween2Calendar(ca0, ca1);
 		if (ca0.compareTo(ca1) < 0) {
+			System.out.println("delta = " + delta);
 			result[0] = (byte) (delta % 10);
 			result[1] = (byte) (delta % 12);
 		} else {
-			result[0] = (byte) ((10 - delta % 10) % 10);
-			result[1] = (byte) ((12 - delta % 12) % 12);
+			result[0] = (byte) (10 - (delta % 10));
+			result[1] = (byte) (12 - (delta % 12));
 		}
 		return result;
 	}
